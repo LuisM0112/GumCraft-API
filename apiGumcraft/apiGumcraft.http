@@ -1,0 +1,6 @@
+@apiGumcraft_HostAddress = http://localhost:5215
+
+GET {{apiGumcraft_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
