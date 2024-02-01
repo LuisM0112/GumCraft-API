@@ -1,6 +1,7 @@
 using apiGumcraft.Database.Entities;
 using GumcraftApi.Database;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace apiGumcraft.Controllers
 {
@@ -24,3 +25,4 @@ namespace apiGumcraft.Controllers
         }
     }
 }
+
