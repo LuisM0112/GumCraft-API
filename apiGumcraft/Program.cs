@@ -20,6 +20,8 @@ namespace apiGumcraft
 
             var app = builder.Build();
 
+       
+
             //Creamos un scope 
             using (IServiceScope scope = app.Services.CreateScope())
             {
@@ -33,7 +35,6 @@ namespace apiGumcraft
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
-
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
