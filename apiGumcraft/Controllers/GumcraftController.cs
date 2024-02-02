@@ -27,7 +27,22 @@ namespace apiGumcraft.Controllers
             return _dbContext.Users.Select(ToDto);
         }
 
-        [HttpPost]
+        [HttpPost("Login")]
+
+        public async Task<IActionResult> PostLogin([FromForm] UserDto userDto)
+        {
+            if (userDto == null)
+            {
+
+            }
+
+
+
+            return Ok("Sesión Iniciada");
+        }
+
+        [HttpPost("SignUp")]
+
         public async Task<IActionResult> Post([FromForm] UserDto userDto)
         {
             User newUser = new User()
