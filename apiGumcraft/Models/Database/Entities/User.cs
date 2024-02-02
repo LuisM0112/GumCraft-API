@@ -1,16 +1,17 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using apiGumcraft.Database.Entities;
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 
-namespace apiGumcraft.Database.Entities
+namespace GumcraftApi.Models.Database.Entities
 {
-    [Index(nameof(Email),IsUnique = true)]
+    [Index(nameof(Email), IsUnique = true)]
     public class User
     {
 
         public long UserId { get; set; }
         public string Name { get; set; }
 
-        
+
         public string Email { get; set; }
         public string Password { get; set; }
         public string Address { get; set; }

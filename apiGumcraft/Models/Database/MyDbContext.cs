@@ -1,4 +1,5 @@
 ﻿using apiGumcraft.Database.Entities;
+using GumcraftApi.Models.Database.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace GumcraftApi.Database;

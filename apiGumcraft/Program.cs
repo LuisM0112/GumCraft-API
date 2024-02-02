@@ -1,5 +1,5 @@
-
 using GumcraftApi.Database;
+using GumcraftApi.Models.Database;
 
 namespace apiGumcraft
 {
