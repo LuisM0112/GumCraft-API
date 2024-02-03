@@ -18,9 +18,22 @@ namespace apiGumcraft
             //Añadir dbContext al servicio de inyección de dependencias
             builder.Services.AddScoped<MyDbContext>();
 
+            // Permite CORS
+            if (builder.Environment.IsDevelopment())
+            {
+                builder.Services.AddCors(options =>
+                {
+                    options.AddDefaultPolicy(builder =>
+                    {
+                        builder.SetIsOriginAllowed(origin => new Uri(origin).Host == "localhost")
+                            .AllowAnyHeader()
+                            .AllowAnyMethod();
+                    });
+                });
+            }
+
             var app = builder.Build();
 
-       
 
             //Creamos un scope 
             using (IServiceScope scope = app.Services.CreateScope())
@@ -34,6 +47,10 @@ namespace apiGumcraft
             {
                 app.UseSwagger();
                 app.UseSwaggerUI();
+
+                // Permite CORS
+                app.UseCors();
+
             }
             app.UseHttpsRedirection();
 

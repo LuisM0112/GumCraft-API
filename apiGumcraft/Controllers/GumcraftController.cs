@@ -28,7 +28,6 @@ namespace apiGumcraft.Controllers
         }
 
         [HttpPost("Login")]
-
         public async Task<IActionResult> PostLogin([FromForm] UserDto userDto)
         {
             if (userDto == null)
@@ -42,7 +41,6 @@ namespace apiGumcraft.Controllers
         }
 
         [HttpPost("SignUp")]
-
         public async Task<IActionResult> Post([FromForm] UserDto userDto)
         {
             User newUser = new User()
