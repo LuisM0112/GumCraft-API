@@ -41,20 +41,27 @@ namespace apiGumcraft.Controllers
         }
 
         [HttpPost("SignUp")]
+        [Consumes("multipart/form-data")]
         public async Task<IActionResult> Post([FromForm] UserDto userDto)
         {
-            User newUser = new User()
+            try
             {
-                Name = userDto.UserName,
-                Email = userDto.Email,
-                Password = userDto.Password,
-                Address = userDto.Address,
-            };
+                User newUser = new User()
+                {
+                    Name = userDto.UserName,
+                    Email = userDto.Email,
+                    Password = userDto.Password,
+                    Address = userDto.Address,
+                };
 
-            await _dbContext.Users.AddAsync(newUser);
-            await _dbContext.SaveChangesAsync();
+                await _dbContext.Users.AddAsync(newUser);
+                await _dbContext.SaveChangesAsync();
 
-            return Ok("Usuario Registrado");
+                return Ok("Usuario Registrado");
+            } catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         private UserDto ToDto (User user)
