@@ -1,10 +1,10 @@
 using GumcraftApi.Database;
-using GumcraftApi.Models.Database;
+using GumcraftApi.Models.Classes;
 using GumcraftApi.Models.Database.Entities;
 using GumcraftApi.Models.Dto;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using System.Xml.Linq;
 
 namespace apiGumcraft.Controllers
 {
@@ -28,39 +28,79 @@ namespace apiGumcraft.Controllers
         }
 
         [HttpPost("Login")]
-        public async Task<IActionResult> PostLogin([FromForm] UserDto userDto)
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> PostLogin([FromForm] LoggedUser incomingLoggedUser)
         {
-            if (userDto == null)
+            ObjectResult statusCode;
+            if (incomingLoggedUser.Email == null || incomingLoggedUser.Password == null)
             {
-
+                statusCode = BadRequest("Rellene los campos");
             }
-
-
-
-            return Ok("Sesión Iniciada");
+            else
+            {
+                var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == incomingLoggedUser.Email);
+                if (user == null)
+                {
+                    statusCode = BadRequest("El usuario no existe");
+                }
+                else if (user.Password != incomingLoggedUser.Password)
+                {
+                    statusCode = BadRequest("Contraseña equivocada");
+                }
+                else
+                {
+                    statusCode = Ok("Sesión Iniciada");
+                }
+            }
+            return statusCode;
         }
 
         [HttpPost("SignUp")]
         [Consumes("multipart/form-data")]
-        public async Task<IActionResult> Post([FromForm] UserDto userDto)
+        public async Task<IActionResult> Post([FromForm] NewUser incomingNewUser)
         {
             try
             {
-                User newUser = new User()
+                ObjectResult statusCode;
+                if (incomingNewUser.UserName == null || incomingNewUser.Email == null || incomingNewUser.Password == null || incomingNewUser.PasswordBis == null || incomingNewUser.Address == null)
                 {
-                    Name = userDto.UserName,
-                    Email = userDto.Email,
-                    Password = userDto.Password,
-                    Address = userDto.Address,
-                };
+                    statusCode = BadRequest("Rellene los campos");
+                }
+                else if (incomingNewUser.Password != incomingNewUser.PasswordBis)
+                {
+                    statusCode = BadRequest("Las contraseñas no coinciden");
+                }
+                else
+                {
+                    User newUser = new User()
+                    {
+                        Name = incomingNewUser.UserName,
+                        Email = incomingNewUser.Email,
+                        Password = incomingNewUser.Password,
+                        Address = incomingNewUser.Address,
+                    };
 
-                await _dbContext.Users.AddAsync(newUser);
-                await _dbContext.SaveChangesAsync();
+                    await _dbContext.Users.AddAsync(newUser);
+                    await _dbContext.SaveChangesAsync();
 
-                return Ok("Usuario Registrado");
-            } catch (Exception ex)
+                    statusCode = Ok("Usuario Registrado");
+                }
+                return statusCode;
+            } catch (DbUpdateException ex)
             {
-                return BadRequest(ex.Message);
+                ObjectResult statusCode;
+                if (ex.InnerException == null)
+                {
+                    statusCode = BadRequest(ex.Message);
+                } else
+                {
+                    SqliteException sqliteException = (SqliteException)ex.InnerException;
+                    if (sqliteException.SqliteExtendedErrorCode == 2067)
+                    {
+                        statusCode = BadRequest("Usuario ya existente");
+                    } else statusCode = BadRequest(sqliteException.Message);
+                }
+                return statusCode;
             }
         }
 
