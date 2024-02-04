@@ -27,6 +27,20 @@ namespace apiGumcraft.Controllers
             return _dbContext.Users.Select(ToDto);
         }
 
+        [HttpGet("GetUserByEmail")]
+        public async Task<IActionResult> GetUserByEmail([FromQuery] string email)
+        {
+            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
+            if (user == null)
+            {
+                return NotFound("Usuario no encontrado");
+            }
+            else
+            {
+                return Ok(ToDto(user));
+            }
+        }
+
         [HttpPost("Login")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> PostLogin([FromForm] LoggedUser incomingLoggedUser)
