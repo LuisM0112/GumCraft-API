@@ -125,7 +125,6 @@ namespace apiGumcraft.Controllers
                 UserName = user.Name,
                 Email = user.Email,
                 Address = user.Address,
-                Password = user.Password,
             };
         }
     }
