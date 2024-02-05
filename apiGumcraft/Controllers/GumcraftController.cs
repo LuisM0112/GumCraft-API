@@ -2,9 +2,12 @@ using GumcraftApi.Database;
 using GumcraftApi.Models.Classes;
 using GumcraftApi.Models.Database.Entities;
 using GumcraftApi.Models.Dto;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 
 namespace apiGumcraft.Controllers
 {
@@ -20,7 +23,6 @@ namespace apiGumcraft.Controllers
         }
 
         //Devuelve user
-
         [HttpGet]
         public IEnumerable<UserDto> GetUsers()
         {
@@ -125,6 +127,7 @@ namespace apiGumcraft.Controllers
                 UserName = user.Name,
                 Email = user.Email,
                 Address = user.Address,
+                Password = user.Password,
             };
         }
     }

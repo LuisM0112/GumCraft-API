@@ -1,5 +1,7 @@
 using GumcraftApi.Database;
 using GumcraftApi.Models.Database;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace apiGumcraft
 {
@@ -17,7 +19,24 @@ namespace apiGumcraft
             builder.Services.AddSwaggerGen();
             //Añadir dbContext al servicio de inyección de dependencias
             builder.Services.AddScoped<MyDbContext>();
+            builder.Services.AddAuthentication().AddJwtBearer(options =>
+            {
+                try
+                {
+                    string key = Environment.GetEnvironmentVariable("JWT-KEY");
 
+                    options.TokenValidationParameters = new TokenValidationParameters()
+                    {
+                        ValidateIssuer = false,
+                        ValidateAudience = false,
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key))
+
+                    };
+                }catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+            });
             // Permite CORS
             if (builder.Environment.IsDevelopment())
             {
@@ -55,7 +74,7 @@ namespace apiGumcraft
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
-
+            app.UseAuthentication();
 
             app.MapControllers();
 
