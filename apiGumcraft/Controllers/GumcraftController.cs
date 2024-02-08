@@ -29,48 +29,6 @@ namespace apiGumcraft.Controllers
             return _dbContext.Users.Select(ToDto);
         }
 
-        [HttpGet("GetUserByEmail")]
-        public async Task<IActionResult> GetUserByEmail([FromQuery] string email)
-        {
-            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
-            if (user == null)
-            {
-                return NotFound("Usuario no encontrado");
-            }
-            else
-            {
-                return Ok(ToDto(user));
-            }
-        }
-
-        [HttpPost("Login")]
-        [Consumes("multipart/form-data")]
-        public async Task<IActionResult> PostLogin([FromForm] LoggedUser incomingLoggedUser)
-        {
-            ObjectResult statusCode;
-            if (incomingLoggedUser.Email == null || incomingLoggedUser.Password == null)
-            {
-                statusCode = BadRequest("Rellene los campos");
-            }
-            else
-            {
-                var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == incomingLoggedUser.Email);
-                if (user == null)
-                {
-                    statusCode = BadRequest("El usuario no existe");
-                }
-                else if (user.Password != incomingLoggedUser.Password)
-                {
-                    statusCode = BadRequest("Contraseña equivocada");
-                }
-                else
-                {
-                    statusCode = Ok("Sesión Iniciada");
-                }
-            }
-            return statusCode;
-        }
-
         [HttpPost("SignUp")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> Post([FromForm] NewUser incomingNewUser)
@@ -94,6 +52,7 @@ namespace apiGumcraft.Controllers
                         Email = incomingNewUser.Email,
                         Password = incomingNewUser.Password,
                         Address = incomingNewUser.Address,
+                        Role = "USER"
                     };
 
                     await _dbContext.Users.AddAsync(newUser);
@@ -115,8 +74,9 @@ namespace apiGumcraft.Controllers
                     {
                         statusCode = BadRequest("Usuario ya existente");
                     } else statusCode = BadRequest(sqliteException.Message);
-                }
+                }   
                 return statusCode;
+             
             }
         }
 
@@ -127,7 +87,6 @@ namespace apiGumcraft.Controllers
                 UserName = user.Name,
                 Email = user.Email,
                 Address = user.Address,
-                Password = user.Password,
             };
         }
     }
