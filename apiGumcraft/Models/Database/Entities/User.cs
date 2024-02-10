@@ -1,6 +1,6 @@
 ﻿using apiGumcraft.Database.Entities;
 using Microsoft.EntityFrameworkCore;
-using System.ComponentModel.DataAnnotations;
+using System.ComponentModel;
 
 namespace GumcraftApi.Models.Database.Entities
 {
@@ -15,6 +15,8 @@ namespace GumcraftApi.Models.Database.Entities
         public string Email { get; set; }
         public string Password { get; set; }
         public string Address { get; set; }
+
+        [DefaultValue("user")]
         public string Role { get; set; }
 
         public string TransactionHash { get; set; }

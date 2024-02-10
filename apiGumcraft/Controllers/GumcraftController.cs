@@ -1,13 +1,11 @@
+using apiGumcraft.Database.Entities;
 using GumcraftApi.Database;
 using GumcraftApi.Models.Classes;
 using GumcraftApi.Models.Database.Entities;
 using GumcraftApi.Models.Dto;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
 
 namespace apiGumcraft.Controllers
 {
@@ -23,7 +21,7 @@ namespace apiGumcraft.Controllers
         }
 
         //Devuelve user
-        [HttpGet]
+        [HttpGet("Users")]
         public IEnumerable<UserDto> GetUsers()
         {
             return _dbContext.Users.Select(ToDto);
@@ -80,13 +78,34 @@ namespace apiGumcraft.Controllers
             }
         }
 
-        private UserDto ToDto (User user)
+        private UserDto ToDto(User user)
         {
             return new UserDto
             {
                 UserName = user.Name,
                 Email = user.Email,
                 Address = user.Address,
+            };
+        }
+
+        //Devuelve Product
+        [HttpGet("Products")]
+        public IEnumerable<ProductDto> GetProducts()
+        {
+            return _dbContext.Products.Select(ToDto);
+        }
+
+        private ProductDto ToDto(Product product)
+        {
+            return new ProductDto
+            {
+                ProductId = product.ProductId,
+                Name = product.Name,
+                Description = product.Description,
+                Image = product.Image,
+                Stock = product.Stock,
+                EURprice = product.EURprice,
+                ETHprice = product.ETHprice
             };
         }
     }

@@ -9,8 +9,8 @@ public class Product
     public string Description { get; set; }
     public string Image {  get; set; }
     public int Stock { get; set; }
-    public int EURprice { get; set; }
-    public int ETHprice {  get; set; }
+    public decimal EURprice { get; set; }
+    public decimal ETHprice {  get; set; }
 
     //Relación uno a muchos producto-productoCarrito
     public ICollection<ProductCart> ProductsCart { get; set; }

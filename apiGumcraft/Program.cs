@@ -1,5 +1,4 @@
 using GumcraftApi.Database;
-using GumcraftApi.Models.Database;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
