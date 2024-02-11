@@ -70,7 +70,7 @@ namespace GumcraftApi.Controllers
                         SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
                         string stringToken = tokenHandler.WriteToken(token);
 
-                        return Ok(stringToken);
+                        return Ok(user.UserId);
                     }
                     catch (Exception ex)
                     {
