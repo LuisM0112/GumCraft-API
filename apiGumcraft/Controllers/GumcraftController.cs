@@ -52,8 +52,8 @@ namespace apiGumcraft.Controllers
                         Password = incomingNewUser.Password,
                         Address = incomingNewUser.Address,
                         Role = "USER"
-                    };   
-                    
+                    };
+
                     await _dbContext.Users.AddAsync(newUser);
                     await _dbContext.SaveChangesAsync();
                     var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == incomingNewUser.Email);
@@ -65,7 +65,7 @@ namespace apiGumcraft.Controllers
 
                     await _dbContext.Carts.AddAsync(newCart);
                     await _dbContext.SaveChangesAsync();
-                 
+
 
                     statusCode = Ok("Usuario registrado");
                 }
@@ -179,7 +179,7 @@ namespace apiGumcraft.Controllers
             return Ok(total);
         }
 
-        [HttpPost("cart/{cartId}/product/{productId}")]
+        [HttpPut("cart/{cartId}/product/{productId}")]
         public async Task<IActionResult> AddProductToCart(long cartId, long productId)
         {
             var cart = await _dbContext.Carts
@@ -207,7 +207,7 @@ namespace apiGumcraft.Controllers
             }
             else
             {
-             
+
                 productCart = new ProductCart
                 {
                     Cart = cart,
@@ -218,12 +218,52 @@ namespace apiGumcraft.Controllers
                 cart.ProductsCart.Add(productCart);
             }
 
+
+
             await _dbContext.SaveChangesAsync();
 
             return Ok("Producto añadido al carrito");
         }
 
+        [HttpPut("cart/{cartId}/productDel/{productId}")]
+        public async Task<IActionResult> DelProductToCart(long cartId, long productId)
+        {
+            var cart = await _dbContext.Carts
+                .Include(c => c.ProductsCart)
+                    .ThenInclude(pc => pc.Product)
+                .FirstOrDefaultAsync(c => c.CartId == cartId);
 
+            if (cart == null)
+            {
+                return NotFound("Carrito no encontrado");
+            }
+
+            var product = await _dbContext.Products.FindAsync(productId);
+
+            if (product == null)
+            {
+                return NotFound("Producto no encontrado");
+            }
+
+            var productCart = cart.ProductsCart.FirstOrDefault(pc => pc.Product.ProductId == productId);
+            if (productCart == null)
+            {
+                return BadRequest("El producto no está en el carrito");
+            }
+            
+            if (productCart.Amount > 1 )
+            {
+                productCart.Amount--;
+            }
+            else
+            {
+                cart.ProductsCart.Remove(productCart);
+            }
+
+            await _dbContext.SaveChangesAsync();
+
+            return Ok("Producto eliminado correctamente");
+        }
     };
 }
 
