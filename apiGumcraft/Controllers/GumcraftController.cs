@@ -123,6 +123,26 @@ namespace apiGumcraft.Controllers
             };
         }
 
+        //Devuelve Product
+        [HttpGet("Product/{productId}")]
+        public async Task<IActionResult> GetProducts(long productId)
+        {
+            ObjectResult statusCode;
+            var product = await _dbContext.Products.FirstOrDefaultAsync(p => p.ProductId == productId);
+
+            if (product == null)
+            {
+                statusCode = NotFound("Producto no encontrado");
+            }
+            else
+            {
+                statusCode = Ok(ToDto(product));
+            }
+
+            return statusCode;
+        }
+
+
         [HttpGet("carts")]
         public IEnumerable<CartDto> GetCarts()
         {
