@@ -3,6 +3,7 @@ using GumCraft_API.Database.Entities;
 using GumCraft_API.Models.Classes;
 using GumCraft_API.Models.Database.Entities;
 using GumCraft_API.Models.Dto;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
@@ -283,5 +284,33 @@ namespace GumCraft_API.Controllers
 
             return Ok("Producto eliminado correctamente");
         }
+        
+        [HttpGet("GetUserById")]
+        [Authorize]
+        public ActionResult<UserDto> GetUser()
+        {
+            var userId = User.FindFirst("id").Value;
+
+            Console.WriteLine($"Reclamación de ID encontrada en el token: {userId}");
+
+            if (!long.TryParse(userId, out long longId))
+            {
+                Console.WriteLine($"Formato de ID inválido: {userId}");
+                return BadRequest("Invalid ID format");
+            }
+
+            Console.WriteLine($"ID de usuario parseado correctamente: {longId}");
+
+            var user = _dbContext.Users.FirstOrDefault(u => u.UserId == longId);
+            if (user == null)
+            {
+                Console.WriteLine($"No se encontró ningún usuario con el ID: {longId}");
+                return NotFound();
+            }
+
+            Console.WriteLine($"Usuario encontrado: {user.UserId}");
+            return ToDto(user);
+        }
     }
 }
+
