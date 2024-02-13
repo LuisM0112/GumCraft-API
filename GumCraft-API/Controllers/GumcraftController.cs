@@ -160,6 +160,8 @@ namespace GumCraft_API.Controllers
         [HttpGet("cart/{cartId}/products")]
         public async Task<IActionResult> GetProductsInCart(long cartId)
         {
+            ObjectResult statusCode;
+
             var cart = await _dbContext.Carts
                 .Include(c => c.ProductsCart)
                     .ThenInclude(pc => pc.Product)
@@ -167,23 +169,29 @@ namespace GumCraft_API.Controllers
 
             if (cart == null)
             {
-                return NotFound("Carrito no encontrado");
+                statusCode = NotFound("Carrito no encontrado");
+            }
+            else
+            {
+                var productCartDto = cart.ProductsCart.Select(pc => new ProductCartDto
+                {
+                    ProductId = pc.Product.ProductId,
+                    Name = pc.Product.Name,
+                    Amount = pc.Amount,
+                    Price = pc.Product.EURprice * pc.Amount
+                }).ToList();
+
+                statusCode = Ok(productCartDto);
             }
 
-            var productCartDto = cart.ProductsCart.Select(pc => new ProductCartDto
-            {
-                ProductId = pc.Product.ProductId,
-                Name = pc.Product.Name,
-                Amount = pc.Amount,
-                Price = pc.Product.EURprice * pc.Amount
-            }).ToList();
-
-            return Ok(productCartDto);
+            return statusCode;
         }
 
         [HttpGet("cart/{cartId}/total")]
         public async Task<IActionResult> GetCartTotal(long cartId)
         {
+            ObjectResult statusCode;
+
             var cart = await _dbContext.Carts
                 .Include(c => c.ProductsCart)
                     .ThenInclude(pc => pc.Product)
@@ -191,30 +199,34 @@ namespace GumCraft_API.Controllers
 
             if (cart == null)
             {
-                return NotFound("Carrito no encontrado");
+                statusCode = NotFound("Carrito no encontrado");
             }
+            else
+            {
+                var total = cart.ProductsCart.Sum(pc => pc.Product.EURprice * pc.Amount);
 
-            var total = cart.ProductsCart.Sum(pc => pc.Product.EURprice * pc.Amount);
-
-            return Ok(total);
+                statusCode = Ok(total);
+            }
+            return statusCode;
         }
 
         [HttpPut("cart/{cartId}/product/{productId}")]
         public async Task<IActionResult> AddProductToCart(long cartId, long productId)
         {
+            ObjectResult statusCode;
+
             var cart = await _dbContext.Carts
                 .Include(c => c.ProductsCart)
                     .ThenInclude(pc => pc.Product)
                 .FirstOrDefaultAsync(c => c.CartId == cartId);
 
+            var product = await _dbContext.Products.FindAsync(productId);
+
             if (cart == null)
             {
                 return NotFound("Carrito no encontrado");
             }
-
-            var product = await _dbContext.Products.FindAsync(productId);
-
-            if (product == null)
+            else if (product == null)
             {
                 return NotFound("Producto no encontrado");
             }
