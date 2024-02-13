@@ -1,6 +1,6 @@
-﻿using GumcraftApi.Models.Database.Entities;
+﻿using GumCraft_API.Models.Database.Entities;
 
-namespace apiGumcraft.Database.Entities;
+namespace GumCraft_API.Database.Entities;
 
 public class Order
 {

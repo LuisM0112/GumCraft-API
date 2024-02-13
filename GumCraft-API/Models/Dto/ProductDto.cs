@@ -1,4 +1,4 @@
-﻿namespace GumcraftApi.Models.Dto
+﻿namespace GumCraft_API.Models.Dto
 {
     public class ProductDto
     {

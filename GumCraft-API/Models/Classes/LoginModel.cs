@@ -1,4 +1,4 @@
-﻿namespace GumcraftApi.Models.Classes;
+﻿namespace GumCraft_API.Models.Classes;
 
 public class LoginModel
 {

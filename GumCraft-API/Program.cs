@@ -1,8 +1,9 @@
-using GumcraftApi.Database;
+
+using GumCraft_API.Database;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
-namespace apiGumcraft
+namespace GumCraft_API
 {
     public class Program
     {
@@ -18,23 +19,19 @@ namespace apiGumcraft
             builder.Services.AddSwaggerGen();
             //Añadir dbContext al servicio de inyección de dependencias
             builder.Services.AddScoped<MyDbContext>();
-            builder.Services.AddAuthentication().AddJwtBearer(options =>
+            builder.Services.AddAuthentication()
+                .AddJwtBearer(options =>
             {
-                try
-                {
-                    string key = Environment.GetEnvironmentVariable("JWT-KEY");
 
-                    options.TokenValidationParameters = new TokenValidationParameters()
-                    {
-                        ValidateIssuer = false,
-                        ValidateAudience = false,
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key))
+                string key = Environment.GetEnvironmentVariable("JWT_KEY");
 
-                    };
-                }catch (Exception ex)
+                options.TokenValidationParameters = new TokenValidationParameters()
                 {
-                    Console.WriteLine(ex.Message);
-                }
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key))
+                };
+
             });
             // Permite CORS
             if (builder.Environment.IsDevelopment())
@@ -52,7 +49,6 @@ namespace apiGumcraft
 
             var app = builder.Build();
 
-
             //Creamos un scope 
             using (IServiceScope scope = app.Services.CreateScope())
             {
@@ -65,15 +61,12 @@ namespace apiGumcraft
             {
                 app.UseSwagger();
                 app.UseSwaggerUI();
-
-                // Permite CORS
-                app.UseCors();
-
             }
+
             app.UseHttpsRedirection();
 
-            app.UseAuthorization();
             app.UseAuthentication();
+            app.UseAuthorization();
 
             app.MapControllers();
 

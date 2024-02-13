@@ -1,16 +1,14 @@
-﻿using apiGumcraft.Database.Entities;
+﻿using GumCraft_API.Database.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel;
 
-namespace GumcraftApi.Models.Database.Entities
+namespace GumCraft_API.Models.Database.Entities
 {
     [Index(nameof(Email), IsUnique = true)]
     public class User
     {
-
         public long UserId { get; set; }
         public string Name { get; set; }
-
 
         public string Email { get; set; }
         public string Password { get; set; }
@@ -19,8 +17,8 @@ namespace GumcraftApi.Models.Database.Entities
         [DefaultValue("user")]
         public string Role { get; set; }
 
-        public string TransactionHash { get; set; }
-        public string WalletAddress { get; set; }
+        public string? TransactionHash { get; set; }
+        public string? WalletAddress { get; set; }
 
         //Relación 1 a muchos, un usuario muchos pedidos
         public ICollection<Order> Orders { get; set; }

@@ -1,6 +1,6 @@
-﻿using apiGumcraft.Database.Entities;
+﻿using GumCraft_API.Database.Entities;
 
-namespace GumcraftApi.Models.Database.Entities
+namespace GumCraft_API.Models.Database.Entities
 {
 
     public class ProductCart

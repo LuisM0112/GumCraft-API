@@ -1,11 +1,10 @@
-﻿namespace GumcraftApi.Models.Classes
+﻿namespace GumCraft_API.Models.Dto
 {
-    public class NewUser
+    public class UserDto
     {
         public string UserName { get; set; }
         public string Email { get; set; }
         public string Password { get; set; }
-        public string PasswordBis { get; set; }
         public string Address { get; set; }
     }
 }

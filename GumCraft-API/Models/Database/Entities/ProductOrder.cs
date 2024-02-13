@@ -1,4 +1,4 @@
-﻿namespace apiGumcraft.Database.Entities
+﻿namespace GumCraft_API.Database.Entities
 {
     public class ProductOrder
     {

@@ -1,7 +1,7 @@
-﻿using apiGumcraft.Database.Entities;
-using GumcraftApi.Models.Database.Entities;
+﻿using GumCraft_API.Database.Entities;
+using GumCraft_API.Models.Database.Entities;
 
-namespace apiGumcraft.Controllers
+namespace GumCraft_API.Controllers
 {
     public class CartDto
     {

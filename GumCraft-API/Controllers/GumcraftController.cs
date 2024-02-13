@@ -1,18 +1,17 @@
-using apiGumcraft.Database.Entities;
-using GumcraftApi.Database;
-using GumcraftApi.Models.Classes;
-using GumcraftApi.Models.Database.Entities;
-using GumcraftApi.Models.Dto;
+ï»¿using GumCraft_API.Database;
+using GumCraft_API.Database.Entities;
+using GumCraft_API.Models.Classes;
+using GumCraft_API.Models.Database.Entities;
+using GumCraft_API.Models.Dto;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using System.Runtime.InteropServices;
 
-namespace apiGumcraft.Controllers
+namespace GumCraft_API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class GumcraftController : ControllerBase
+    public class GumcraftController : Controller
     {
         private MyDbContext _dbContext;
 
@@ -41,7 +40,7 @@ namespace apiGumcraft.Controllers
                 }
                 else if (incomingNewUser.Password != incomingNewUser.PasswordBis)
                 {
-                    statusCode = BadRequest("Las contraseñas no coinciden");
+                    statusCode = BadRequest("Las contraseÃ±as no coinciden");
                 }
                 else
                 {
@@ -242,7 +241,7 @@ namespace apiGumcraft.Controllers
 
             await _dbContext.SaveChangesAsync();
 
-            return Ok("Producto añadido al carrito");
+            return Ok("Producto aÃ±adido al carrito");
         }
 
         [HttpPut("cart/{cartId}/productDel/{productId}")]
@@ -268,10 +267,10 @@ namespace apiGumcraft.Controllers
             var productCart = cart.ProductsCart.FirstOrDefault(pc => pc.Product.ProductId == productId);
             if (productCart == null)
             {
-                return BadRequest("El producto no está en el carrito");
+                return BadRequest("El producto no estÃ¡ en el carrito");
             }
-            
-            if (productCart.Amount > 1 )
+
+            if (productCart.Amount > 1)
             {
                 productCart.Amount--;
             }
@@ -284,7 +283,5 @@ namespace apiGumcraft.Controllers
 
             return Ok("Producto eliminado correctamente");
         }
-    };
+    }
 }
-
-

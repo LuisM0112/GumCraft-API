@@ -1,5 +1,5 @@
-﻿using GumcraftApi.Database;
-using GumcraftApi.Models.Classes;
+﻿using GumCraft_API.Database;
+using GumCraft_API.Models.Classes;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -8,7 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
-namespace GumcraftApi.Controllers
+namespace GumCraft_API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
@@ -47,35 +47,28 @@ namespace GumcraftApi.Controllers
                 }
                 else
                 {
-                    try
+                    var tokenDescriptor = new SecurityTokenDescriptor
                     {
-                        var tokenDescriptor = new SecurityTokenDescriptor
+                        //Añadimos los datos que sirvan para autorizar al usuario
+                        Claims = new Dictionary<string, object>
                         {
-                            //Añadimos los datos que sirvan para autorizar al usuario
-                            Claims = new Dictionary<string, object>
-                            {
-                                { "id", Guid.NewGuid().ToString() },
-                                { ClaimTypes.Role, ""+user.Role+"" }
-                            },
-                            //Añadimos la fecha de caducidad 
-                            Expires = DateTime.UtcNow.AddYears(5),
-                            //Aquí especificamos nuestra clave y el algoritmo de firmado 
-                            SigningCredentials = new SigningCredentials(
-                                _tokenParameters.IssuerSigningKey,
-                                SecurityAlgorithms.HmacSha256Signature
-                                )
-                        };
-                        //Creamos el token y se lo devolvemos al usuario logeado
-                        JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
-                        SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
-                        string stringToken = tokenHandler.WriteToken(token);
+                            { "id", user.UserId.ToString() },
+                            { ClaimTypes.Role, user.Role.ToString() }
+                        },
+                        //Añadimos la fecha de caducidad 
+                        Expires = DateTime.UtcNow.AddYears(5),
+                        //Aquí especificamos nuestra clave y el algoritmo de firmado 
+                        SigningCredentials = new SigningCredentials(
+                            _tokenParameters.IssuerSigningKey,
+                            SecurityAlgorithms.HmacSha256Signature
+                            )
+                    };
+                    //Creamos el token y se lo devolvemos al usuario logeado
+                    JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
+                    SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
+                    string stringToken = tokenHandler.WriteToken(token);
 
-                        return Ok(user.UserId);
-                    }
-                    catch (Exception ex)
-                    {
-                        return BadRequest(ex.Message);
-                    }
+                    return Ok(stringToken);
                 }
             }
             return statusCode;

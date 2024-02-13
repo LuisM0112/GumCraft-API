@@ -1,8 +1,8 @@
-﻿using apiGumcraft.Database.Entities;
-using GumcraftApi.Models.Database.Entities;
+﻿using GumCraft_API.Database.Entities;
+using GumCraft_API.Models.Database.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace GumcraftApi.Database;
+namespace GumCraft_API.Database;
 
 public class MyDbContext: DbContext
 {
