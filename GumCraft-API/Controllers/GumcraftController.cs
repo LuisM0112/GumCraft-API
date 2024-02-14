@@ -32,9 +32,9 @@ namespace GumCraft_API.Controllers
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> Post([FromForm] NewUser incomingNewUser)
         {
+            IActionResult statusCode;
             try
             {
-                ObjectResult statusCode;
                 if (incomingNewUser.UserName == null || incomingNewUser.Email == null || incomingNewUser.Password == null || incomingNewUser.PasswordBis == null || incomingNewUser.Address == null)
                 {
                     statusCode = BadRequest("Rellene los campos");
@@ -73,7 +73,6 @@ namespace GumCraft_API.Controllers
             }
             catch (DbUpdateException ex)
             {
-                ObjectResult statusCode;
                 if (ex.InnerException == null)
                 {
                     statusCode = BadRequest(ex.Message);
@@ -127,7 +126,7 @@ namespace GumCraft_API.Controllers
         [HttpGet("Product/{productId}")]
         public async Task<IActionResult> GetProducts(long productId)
         {
-            ObjectResult statusCode;
+            IActionResult statusCode;
             var product = await _dbContext.Products.FirstOrDefaultAsync(p => p.ProductId == productId);
 
             if (product == null)
@@ -160,7 +159,7 @@ namespace GumCraft_API.Controllers
         [HttpGet("cart/{cartId}/products")]
         public async Task<IActionResult> GetProductsInCart(long cartId)
         {
-            ObjectResult statusCode;
+            IActionResult statusCode;
 
             var cart = await _dbContext.Carts
                 .Include(c => c.ProductsCart)
@@ -190,7 +189,7 @@ namespace GumCraft_API.Controllers
         [HttpGet("cart/{cartId}/total")]
         public async Task<IActionResult> GetCartTotal(long cartId)
         {
-            ObjectResult statusCode;
+            IActionResult statusCode;
 
             var cart = await _dbContext.Carts
                 .Include(c => c.ProductsCart)
@@ -211,50 +210,50 @@ namespace GumCraft_API.Controllers
         }
 
         [HttpPut("cart/{cartId}/product/{productId}")]
-        public async Task<IActionResult> AddProductToCart(long cartId, long productId)
+        public IActionResult AddProductToCart(long cartId, long productId)
         {
-            ObjectResult statusCode;
+            IActionResult statusCode;
 
-            var cart = await _dbContext.Carts
+            var cart = _dbContext.Carts
                 .Include(c => c.ProductsCart)
                     .ThenInclude(pc => pc.Product)
-                .FirstOrDefaultAsync(c => c.CartId == cartId);
+                .FirstOrDefault(c => c.CartId == cartId);
 
-            var product = await _dbContext.Products.FindAsync(productId);
-
-            if (cart == null)
-            {
-                return NotFound("Carrito no encontrado");
-            }
-            else if (product == null)
-            {
-                return NotFound("Producto no encontrado");
-            }
+            var product = _dbContext.Products.Find(productId);
 
             var productCart = cart.ProductsCart.FirstOrDefault(pc => pc.Product.ProductId == productId);
 
-            if (productCart != null)
+            if (cart == null)
             {
-                productCart.Amount++;
+                statusCode = NotFound("Carrito no encontrado");
+            }
+            else if (product == null)
+            {
+                statusCode = NotFound("Producto no encontrado");
             }
             else
             {
-
-                productCart = new ProductCart
+                if (productCart != null)
                 {
-                    Cart = cart,
-                    Product = product,
-                    Amount = 1
-                };
+                    productCart.Amount++;
+                }
+                else
+                {
 
-                cart.ProductsCart.Add(productCart);
+                    productCart = new ProductCart
+                    {
+                        Cart = cart,
+                        Product = product,
+                        Amount = 1
+                    };
+
+                    cart.ProductsCart.Add(productCart);
+                }
+                _dbContext.SaveChanges();
+                statusCode = Ok("Producto añadido al carrito");
             }
 
-
-
-            await _dbContext.SaveChangesAsync();
-
-            return Ok("Producto añadido al carrito");
+            return statusCode;
         }
 
         [HttpPut("cart/{cartId}/productDel/{productId}")]
@@ -299,30 +298,29 @@ namespace GumCraft_API.Controllers
         
         [HttpGet("GetUserById")]
         [Authorize]
-        public ActionResult<UserDto> GetUser()
+        public IActionResult GetUser()
         {
-            var userId = User.FindFirst("id").Value;
+            IActionResult statusCode;
 
-            Console.WriteLine($"Reclamación de ID encontrada en el token: {userId}");
+            var userId = User.FindFirst("id").Value;
 
             if (!long.TryParse(userId, out long longId))
             {
-                Console.WriteLine($"Formato de ID inválido: {userId}");
-                return BadRequest("Invalid ID format");
+                statusCode = BadRequest("Invalid ID format");
             }
-
-            Console.WriteLine($"ID de usuario parseado correctamente: {longId}");
-
-            var user = _dbContext.Users.FirstOrDefault(u => u.UserId == longId);
-            if (user == null)
+            else
             {
-                Console.WriteLine($"No se encontró ningún usuario con el ID: {longId}");
-                return NotFound();
+                var user = _dbContext.Users.FirstOrDefault(u => u.UserId == longId);
+                if (user == null)
+                {
+                    statusCode = NotFound();
+                }
+                else
+                {
+                    statusCode = Ok(ToDto(user));
+                }
             }
-
-            Console.WriteLine($"Usuario encontrado: {user.UserId}");
-            return ToDto(user);
+            return statusCode;
         }
     }
 }
-
