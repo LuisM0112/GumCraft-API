@@ -61,6 +61,8 @@ namespace GumCraft_API
             {
                 app.UseSwagger();
                 app.UseSwaggerUI();
+
+                app.UseCors();
             }
 
             app.UseHttpsRedirection();
