@@ -157,13 +157,15 @@ namespace GumCraft_API.Controllers
             };
         }
 
-        [HttpGet("cart/{cartId}/products")]
+        [Authorize]
+        [HttpGet("cart/products")]
         public async Task<IActionResult> GetProductsInCart(long cartId)
         {
+            string cartID = User.FindFirst("id").Value;
             var cart = await _dbContext.Carts
                 .Include(c => c.ProductsCart)
                     .ThenInclude(pc => pc.Product)
-                .FirstOrDefaultAsync(c => c.CartId == cartId);
+                .FirstOrDefaultAsync(c => c.CartId.ToString().Equals(cartID));
 
             if (cart == null)
             {
@@ -199,13 +201,15 @@ namespace GumCraft_API.Controllers
             return Ok(total);
         }
 
-        [HttpPut("cart/{cartId}/product/{productId}")]
+        [Authorize]
+        [HttpPut("cart/product/{productId}")]
         public async Task<IActionResult> AddProductToCart(long cartId, long productId)
         {
+            string cartID = User.FindFirst("id").Value;
             var cart = await _dbContext.Carts
                 .Include(c => c.ProductsCart)
                     .ThenInclude(pc => pc.Product)
-                .FirstOrDefaultAsync(c => c.CartId == cartId);
+                .FirstOrDefaultAsync(c => c.CartId.ToString().Equals(cartID));
 
             if (cart == null)
             {
@@ -245,13 +249,15 @@ namespace GumCraft_API.Controllers
             return Ok("Producto añadido al carrito");
         }
 
-        [HttpPut("cart/{cartId}/productDel/{productId}")]
+
+        [HttpPut("cart/productDel/{productId}")]
         public async Task<IActionResult> DelProductToCart(long cartId, long productId)
         {
+            string cartID = User.FindFirst("id").Value;
             var cart = await _dbContext.Carts
                 .Include(c => c.ProductsCart)
                     .ThenInclude(pc => pc.Product)
-                .FirstOrDefaultAsync(c => c.CartId == cartId);
+                .FirstOrDefaultAsync(c => c.CartId.ToString().Equals(cartID));
 
             if (cart == null)
             {
@@ -287,7 +293,7 @@ namespace GumCraft_API.Controllers
         
         [HttpGet("GetUserById")]
         [Authorize]
-        public ActionResult<UserDto> GetUser()
+        public ActionResult<string> GetUser()
         {
             var userId = User.FindFirst("id").Value;
 
@@ -308,8 +314,8 @@ namespace GumCraft_API.Controllers
                 return NotFound();
             }
 
-            Console.WriteLine($"Usuario encontrado: {user.UserId}");
-            return ToDto(user);
+            Console.WriteLine($"Usuario encontrado: {user.Name}");
+            return user.Name;
         }
     }
 }
