@@ -3,10 +3,12 @@ using GumCraft_API.Database.Entities;
 using GumCraft_API.Models.Classes;
 using GumCraft_API.Models.Database.Entities;
 using GumCraft_API.Models.Dto;
+using GumCraft_API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace GumCraft_API.Controllers
 {
@@ -141,6 +143,9 @@ namespace GumCraft_API.Controllers
 
             return statusCode;
         }
+
+
+
 
 
         [HttpGet("carts")]
