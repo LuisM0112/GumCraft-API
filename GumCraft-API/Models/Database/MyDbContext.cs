@@ -13,6 +13,7 @@ public class MyDbContext: DbContext
     public DbSet<Product> Products { get; set; }
     public DbSet<ProductCart> ProductsCart { get; set; }
     public DbSet<ProductOrder> ProdcutsOrder { get; set; }
+    public List<Transaction> Transactions { get; private set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder options)
     {
