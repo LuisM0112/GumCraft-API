@@ -314,9 +314,31 @@ namespace GumCraft_API.Controllers
                 return NotFound();
             }
 
-            Console.WriteLine($"Usuario encontrado: {user.Name}");
+            Console.WriteLine($"Usuario encontrado: {user.UserId}");
             return user.Name;
         }
+
+        [Authorize]
+        [HttpPost("cart/clear")]
+        public async Task<IActionResult> ClearCart()
+        {
+            string cartID = User.FindFirst("id").Value;
+            var cart = await _dbContext.Carts
+                .Include(c => c.ProductsCart)
+                .FirstOrDefaultAsync(c => c.CartId.ToString().Equals(cartID));
+
+            if (cart == null)
+            {
+                return NotFound("Carrito no encontrado");
+            }
+
+            _dbContext.ProductsCart.RemoveRange(cart.ProductsCart);
+            await _dbContext.SaveChangesAsync();
+
+            return Ok("Carrito vaciado");
+        }
+
+
     }
 }
 
