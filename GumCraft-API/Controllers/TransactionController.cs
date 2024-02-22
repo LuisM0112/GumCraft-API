@@ -51,7 +51,7 @@ namespace GumCraft_API.Controllers
 
                 Web3 web3 = new Web3(NETWORK_URL);
 
-                TransactionToSign transactionToSing = new TransactionToSign()
+                TransactionToSign transactionToSign = new TransactionToSign()
                 {
                     From = clientWallet,
                     To = OUR_WALLET,
@@ -62,15 +62,17 @@ namespace GumCraft_API.Controllers
 
                 Transaction transaction = new Transaction()
                 {
-                    Id = _dbContext.Transactions.Count,
-                    ClientWallet = transactionToSing.From,
-                    Value = transactionToSing.Value
+                    ClientWallet = transactionToSign.From,
+                    Value = transactionToSign.Value
                 };
+                Console.WriteLine(transaction);
 
-                _dbContext.Transactions.Add(transaction);
-                transactionToSing.Id = transaction.Id;
+                await _dbContext.Transactions.AddAsync(transaction);
+                await _dbContext.SaveChangesAsync();
 
-                statusCode = Ok(transactionToSing);
+                transactionToSign.Id = transaction.TransactionId;
+
+                statusCode = Ok(transactionToSign);
             }
 
             return statusCode;
@@ -79,8 +81,9 @@ namespace GumCraft_API.Controllers
         [HttpPost("check/{transactionId}")]
         public async Task<bool> CheckTransactionAsync(int transactionId, [FromBody] string txHash)
         {
+            Console.WriteLine("Hola");
             bool success = false;
-            Transaction transaction = _dbContext.Transactions[transactionId];
+            Transaction transaction = await _dbContext.Transactions.FirstOrDefaultAsync(t => t.TransactionId == transactionId);
             transaction.Hash = txHash;
 
             Web3 web3 = new Web3(NETWORK_URL);
