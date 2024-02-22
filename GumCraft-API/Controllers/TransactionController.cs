@@ -27,7 +27,7 @@ namespace GumCraft_API.Controllers
             _dbContext = dbContext;
         }
 
-        [HttpPost("buy/{productId}")]
+        [HttpPost("Buy")]
         public async Task<IActionResult> BuyAsync([FromBody] string clientWallet)
         {
             IActionResult statusCode;
