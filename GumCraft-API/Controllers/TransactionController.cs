@@ -1,9 +1,7 @@
 ﻿using GumCraft_API.APIs;
 using GumCraft_API.Database;
-using GumCraft_API.Database.Entities;
 using GumCraft_API.Models.Classes;
 using GumCraft_API.Models.Database.Entities;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Nethereum.Hex.HexTypes;
@@ -65,7 +63,6 @@ namespace GumCraft_API.Controllers
                     ClientWallet = transactionToSign.From,
                     Value = transactionToSign.Value
                 };
-                Console.WriteLine(transaction);
 
                 await _dbContext.Transactions.AddAsync(transaction);
                 await _dbContext.SaveChangesAsync();
@@ -81,7 +78,6 @@ namespace GumCraft_API.Controllers
         [HttpPost("check/{transactionId}")]
         public async Task<bool> CheckTransactionAsync(int transactionId, [FromBody] string txHash)
         {
-            Console.WriteLine("Hola");
             bool success = false;
             Transaction transaction = await _dbContext.Transactions.FirstOrDefaultAsync(t => t.TransactionId == transactionId);
             transaction.Hash = txHash;
