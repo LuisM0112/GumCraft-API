@@ -3,10 +3,12 @@ using GumCraft_API.Database.Entities;
 using GumCraft_API.Models.Classes;
 using GumCraft_API.Models.Database.Entities;
 using GumCraft_API.Models.Dto;
+using GumCraft_API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace GumCraft_API.Controllers
 {
@@ -142,6 +144,9 @@ namespace GumCraft_API.Controllers
         }
 
 
+
+
+
         [HttpGet("carts")]
         public IEnumerable<CartDto> GetCarts()
         {
@@ -156,15 +161,17 @@ namespace GumCraft_API.Controllers
             };
         }
 
-        [HttpGet("cart/{cartId}/products")]
+        [Authorize]
+        [HttpGet("cart/products")]
         public async Task<IActionResult> GetProductsInCart(long cartId)
         {
             IActionResult statusCode;
 
+            string cartID = User.FindFirst("id").Value;
             var cart = await _dbContext.Carts
                 .Include(c => c.ProductsCart)
                     .ThenInclude(pc => pc.Product)
-                .FirstOrDefaultAsync(c => c.CartId == cartId);
+                .FirstOrDefaultAsync(c => c.CartId.ToString().Equals(cartID));
 
             if (cart == null)
             {
@@ -199,6 +206,41 @@ namespace GumCraft_API.Controllers
             if (cart == null)
             {
                 statusCode = NotFound("Carrito no encontrado");
+                return NotFound("Carrito no encontrado");
+            }
+
+            var total = cart.ProductsCart.Sum(pc => pc.Product.EURprice * pc.Amount);
+
+            return Ok(total);
+        }
+
+        [Authorize]
+        [HttpPut("cart/product/{productId}")]
+        public async Task<IActionResult> AddProductToCart(long cartId, long productId)
+        {
+            string cartID = User.FindFirst("id").Value;
+            var cart = await _dbContext.Carts
+                .Include(c => c.ProductsCart)
+                    .ThenInclude(pc => pc.Product)
+                .FirstOrDefaultAsync(c => c.CartId.ToString().Equals(cartID));
+
+            if (cart == null)
+            {
+                return NotFound("Carrito no encontrado");
+            }
+
+            var product = await _dbContext.Products.FindAsync(productId);
+
+            if (product == null)
+            {
+                return NotFound("Producto no encontrado");
+            }
+
+            var productCart = cart.ProductsCart.FirstOrDefault(pc => pc.Product.ProductId == productId);
+
+            if (productCart != null)
+            {
+                productCart.Amount++;
             }
             else
             {
@@ -256,13 +298,15 @@ namespace GumCraft_API.Controllers
             return statusCode;
         }
 
-        [HttpPut("cart/{cartId}/productDel/{productId}")]
+
+        [HttpPut("cart/productDel/{productId}")]
         public async Task<IActionResult> DelProductToCart(long cartId, long productId)
         {
+            string cartID = User.FindFirst("id").Value;
             var cart = await _dbContext.Carts
                 .Include(c => c.ProductsCart)
                     .ThenInclude(pc => pc.Product)
-                .FirstOrDefaultAsync(c => c.CartId == cartId);
+                .FirstOrDefaultAsync(c => c.CartId.ToString().Equals(cartID));
 
             if (cart == null)
             {
@@ -299,6 +343,7 @@ namespace GumCraft_API.Controllers
         [HttpGet("GetUserById")]
         [Authorize]
         public IActionResult GetUser()
+        public ActionResult<string> GetUser()
         {
             IActionResult statusCode;
 
@@ -321,6 +366,31 @@ namespace GumCraft_API.Controllers
                 }
             }
             return statusCode;
+
+            Console.WriteLine($"Usuario encontrado: {user.UserId}");
+            return user.Name;
         }
+
+        [Authorize]
+        [HttpPost("cart/clear")]
+        public async Task<IActionResult> ClearCart()
+        {
+            string cartID = User.FindFirst("id").Value;
+            var cart = await _dbContext.Carts
+                .Include(c => c.ProductsCart)
+                .FirstOrDefaultAsync(c => c.CartId.ToString().Equals(cartID));
+
+            if (cart == null)
+            {
+                return NotFound("Carrito no encontrado");
+            }
+
+            _dbContext.ProductsCart.RemoveRange(cart.ProductsCart);
+            await _dbContext.SaveChangesAsync();
+
+            return Ok("Carrito vaciado");
+        }
+
+
     }
 }
