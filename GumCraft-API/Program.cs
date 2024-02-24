@@ -21,9 +21,6 @@ namespace GumCraft_API
             builder.Services.AddScoped<MyDbContext>();
             builder.Services.AddTransient<DbSeeder>();
 
-
-
-
             builder.Services.AddAuthentication()
                 .AddJwtBearer(options =>
                 {
