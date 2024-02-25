@@ -71,7 +71,6 @@ namespace GumCraft_API.Controllers
 
                     statusCode = Ok("Usuario registrado");
                 }
-                return statusCode;
             }
             catch (DbUpdateException ex)
             {
@@ -88,9 +87,8 @@ namespace GumCraft_API.Controllers
                     }
                     else statusCode = BadRequest(sqliteException.Message);
                 }
-                return statusCode;
-
             }
+            return statusCode;
         }
 
         private UserDto ToDto(User user)
