@@ -131,6 +131,7 @@ namespace GumCraft_API.Controllers
             var cart = await _dbContext.Carts
                 .Include(c => c.ProductsCart)
                 .FirstOrDefaultAsync(c => c.CartId.ToString().Equals(userId));
+            Console.WriteLine(cart.);
 
             if (user == null)
             {
