@@ -29,11 +29,11 @@ namespace GumCraft_API.Controllers
         public async Task<IActionResult> BuyAsync([FromBody] string clientWallet)
         {
             IActionResult statusCode;
-            string cartID = User.FindFirst("id").Value;
+            string userId = User.FindFirst("id").Value;
             var cart = await _dbContext.Carts
                 .Include(c => c.ProductsCart)
                     .ThenInclude(pc => pc.Product)
-                .FirstOrDefaultAsync(c => c.CartId.ToString().Equals(cartID));
+                .FirstOrDefaultAsync(c => c.CartId.ToString().Equals(userId));
 
             if(cart == null)
             {
@@ -78,6 +78,7 @@ namespace GumCraft_API.Controllers
         [HttpPost("check/{transactionId}")]
         public async Task<bool> CheckTransactionAsync(int transactionId, [FromBody] string txHash)
         {
+            string userId = User.FindFirst("id").Value;
             bool success = false;
             Transaction transaction = await _dbContext.Transactions.FirstOrDefaultAsync(t => t.TransactionId == transactionId);
             transaction.Hash = txHash;
@@ -105,6 +106,11 @@ namespace GumCraft_API.Controllers
                     && transactionReceipt.TransactionHash == transaction.Hash // El hash es el mismo
                     && transactionReceipt.From == transaction.ClientWallet // El dinero viene del cliente
                     && transactionReceipt.To.Equals(OUR_WALLET, StringComparison.OrdinalIgnoreCase); // El dinero se ingresa en nuestra cuenta
+
+                if (success)
+                {
+                    await SaveCartOrder(userId);
+                }
             }
             catch (Exception ex)
             {
@@ -114,6 +120,57 @@ namespace GumCraft_API.Controllers
             transaction.Completed = success;
 
             return success;
+        }
+
+        [ApiExplorerSettings(IgnoreApi = true)]
+        public async Task<IActionResult> SaveCartOrder(string userId)
+        {
+            IActionResult statusCode;
+
+            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.UserId.ToString().Equals(userId));
+            var cart = await _dbContext.Carts
+                .Include(c => c.ProductsCart)
+                .FirstOrDefaultAsync(c => c.CartId.ToString().Equals(userId));
+
+            if (user == null)
+            {
+                statusCode = NotFound("Usuario no encontrado");
+            }
+            else if (cart == null)
+            {
+                statusCode = NotFound("Carrito no encontrado");
+            }
+            else
+            {
+                var totalEUR = cart.ProductsCart.Sum(pc => pc.Product.EURprice * pc.Amount);
+                using CoinGeckoApi coinGeckoApi = new CoinGeckoApi();
+                decimal ethereumEur = await coinGeckoApi.GetEthereumPriceAsync();
+
+                Order newOrder = new Order()
+                {
+                    User = user,
+                    Status = "Pending",
+                    Date = DateTime.UtcNow.Date,
+                    EURprice = totalEUR,
+                    ETHtotal = ethereumEur
+                };
+
+                ICollection<ProductOrder> productsOrders = cart.ProductsCart.Select(pc => new ProductOrder()
+                {
+                    Order = newOrder,
+                    Product = pc.Product,
+                    Amount = pc.Amount,
+                }).ToList();
+
+                newOrder.ProductsOrders = productsOrders;
+
+                await _dbContext.Orders.AddAsync(newOrder);
+                await _dbContext.SaveChangesAsync();
+
+                statusCode = Ok("Pedido registrado");
+            }
+
+            return statusCode;
         }
     }
 }

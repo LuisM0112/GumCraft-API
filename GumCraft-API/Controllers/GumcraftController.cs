@@ -1,14 +1,11 @@
 ﻿using GumCraft_API.Database;
-using GumCraft_API.Database.Entities;
 using GumCraft_API.Models.Classes;
 using GumCraft_API.Models.Database.Entities;
 using GumCraft_API.Models.Dto;
-using GumCraft_API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace GumCraft_API.Controllers
 {
@@ -117,8 +114,7 @@ namespace GumCraft_API.Controllers
                 Description = product.Description,
                 Image = product.Image,
                 Stock = product.Stock,
-                EURprice = product.EURprice,
-                ETHprice = product.ETHprice
+                EURprice = product.EURprice
             };
         }
 
@@ -157,15 +153,15 @@ namespace GumCraft_API.Controllers
 
         [Authorize]
         [HttpGet("cart/products")]
-        public async Task<IActionResult> GetProductsInCart(long cartId)
+        public async Task<IActionResult> GetProductsInCart()
         {
             IActionResult statusCode;
 
-            string cartID = User.FindFirst("id").Value;
+            string userId = User.FindFirst("id").Value;
             var cart = await _dbContext.Carts
                 .Include(c => c.ProductsCart)
                     .ThenInclude(pc => pc.Product)
-                .FirstOrDefaultAsync(c => c.CartId.ToString().Equals(cartID));
+                .FirstOrDefaultAsync(c => c.CartId.ToString().Equals(userId));
 
             if (cart == null)
             {
@@ -215,11 +211,11 @@ namespace GumCraft_API.Controllers
         {
             IActionResult statusCode;
 
-            string cartId = User.FindFirst("id").Value;
+            string userId = User.FindFirst("id").Value;
             var cart = _dbContext.Carts
                 .Include(c => c.ProductsCart)
                     .ThenInclude(pc => pc.Product)
-                .FirstOrDefault(c => c.CartId.ToString().Equals(cartId));
+                .FirstOrDefault(c => c.CartId.ToString().Equals(userId));
 
             var product = _dbContext.Products.Find(productId);
 
@@ -259,15 +255,15 @@ namespace GumCraft_API.Controllers
         }
 
         [HttpPut("cart/productDel/{productId}")]
-        public async Task<IActionResult> DelProductToCart(long cartId, long productId)
+        public async Task<IActionResult> DelProductToCart(long productId)
         {
             IActionResult statusCode;
 
-            string cartID = User.FindFirst("id").Value;
+            string userId = User.FindFirst("id").Value;
             var cart = await _dbContext.Carts
                 .Include(c => c.ProductsCart)
                     .ThenInclude(pc => pc.Product)
-                .FirstOrDefaultAsync(c => c.CartId.ToString().Equals(cartID));
+                .FirstOrDefaultAsync(c => c.CartId.ToString().Equals(userId));
 
             var product = await _dbContext.Products.FindAsync(productId);
 
@@ -338,10 +334,10 @@ namespace GumCraft_API.Controllers
         {
             IActionResult statusCode;
 
-            string cartID = User.FindFirst("id").Value;
+            string userId = User.FindFirst("id").Value;
             var cart = await _dbContext.Carts
                 .Include(c => c.ProductsCart)
-                .FirstOrDefaultAsync(c => c.CartId.ToString().Equals(cartID));
+                .FirstOrDefaultAsync(c => c.CartId.ToString().Equals(userId));
 
             if (cart == null)
             {

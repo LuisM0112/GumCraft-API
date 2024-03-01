@@ -1,5 +1,5 @@
 ﻿using GumCraft_API.Database;
-using GumCraft_API.Database.Entities;
+using GumCraft_API.Models.Database.Entities;
 
 namespace GumCraft_API.Models.Database;
 

@@ -1,6 +1,4 @@
-﻿using GumCraft_API.Models.Database.Entities;
-
-namespace GumCraft_API.Database.Entities;
+﻿namespace GumCraft_API.Models.Database.Entities;
 
 public class Product
 {
@@ -10,7 +8,6 @@ public class Product
     public string Image {  get; set; }
     public int Stock { get; set; }
     public decimal EURprice { get; set; }
-    public decimal ETHprice {  get; set; }
 
     //Relación uno a muchos producto-productoCarrito
     public ICollection<ProductCart> ProductsCart { get; set; }
