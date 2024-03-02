@@ -13,11 +13,8 @@ public class User
     public string Password { get; set; }
     public string Address { get; set; }
 
-    [DefaultValue("user")]
+    [DefaultValue("USER")]
     public string Role { get; set; }
-
-    public string? TransactionHash { get; set; }
-    public string? WalletAddress { get; set; }
 
     //Relación 1 a muchos, un usuario muchos pedidos
     public ICollection<Order> Orders { get; set; }

@@ -33,7 +33,7 @@ namespace GumCraft_API.Controllers
             var cart = await _dbContext.Carts
                 .Include(c => c.ProductsCart)
                     .ThenInclude(pc => pc.Product)
-                .FirstOrDefaultAsync(c => c.CartId.ToString().Equals(userId));
+                .FirstOrDefaultAsync(c => c.User.UserId.ToString().Equals(userId));
 
             if(cart == null)
             {
@@ -110,11 +110,12 @@ namespace GumCraft_API.Controllers
                 if (success)
                 {
                     await SaveCartOrder(userId);
+                    await ClearCart(userId);
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al esperar la transacción: {ex.Message}");
+                Console.WriteLine(ex.InnerException);
             }
 
             transaction.Completed = success;
@@ -130,8 +131,8 @@ namespace GumCraft_API.Controllers
             var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.UserId.ToString().Equals(userId));
             var cart = await _dbContext.Carts
                 .Include(c => c.ProductsCart)
-                .FirstOrDefaultAsync(c => c.CartId.ToString().Equals(userId));
-            Console.WriteLine(cart.);
+                    .ThenInclude(pc => pc.Product)
+                .FirstOrDefaultAsync(c => c.User.UserId.ToString().Equals(userId));
 
             if (user == null)
             {
@@ -143,34 +144,67 @@ namespace GumCraft_API.Controllers
             }
             else
             {
-                var totalEUR = cart.ProductsCart.Sum(pc => pc.Product.EURprice * pc.Amount);
+                decimal totalEUR = cart.ProductsCart.Sum(pc => pc.Product.EURprice * pc.Amount);
+                Console.WriteLine(totalEUR.ToString());
                 using CoinGeckoApi coinGeckoApi = new CoinGeckoApi();
                 decimal ethereumEur = await coinGeckoApi.GetEthereumPriceAsync();
+                decimal priceETH = totalEUR / ethereumEur;
 
                 Order newOrder = new Order()
                 {
                     User = user,
-                    Status = "Pending",
-                    Date = DateTime.UtcNow.Date,
+                    Status = "PENDING",
+                    Date = DateTime.Now,
                     EURprice = totalEUR,
-                    ETHtotal = ethereumEur
+                    ETHtotal = priceETH,
+                    ProductsOrders = new List<ProductOrder>()
                 };
-
-                ICollection<ProductOrder> productsOrders = cart.ProductsCart.Select(pc => new ProductOrder()
-                {
-                    Order = newOrder,
-                    Product = pc.Product,
-                    Amount = pc.Amount,
-                }).ToList();
-
-                newOrder.ProductsOrders = productsOrders;
-
                 await _dbContext.Orders.AddAsync(newOrder);
                 await _dbContext.SaveChangesAsync();
+
+                var currentOrder = await _dbContext.Orders.FirstOrDefaultAsync(o => o.User.UserId.ToString().Equals(userId));
+                if (currentOrder == null)
+                {
+                    statusCode = NotFound("Pedido no encontrado");
+                }
+                else
+                {
+                    currentOrder.ProductsOrders = cart.ProductsCart.Select(pc => new ProductOrder()
+                    {
+                        Order = newOrder,
+                        Product = pc.Product,
+                        Amount = pc.Amount,
+                    }).ToList();
+
+                    await _dbContext.SaveChangesAsync();
+                }
 
                 statusCode = Ok("Pedido registrado");
             }
 
+            return statusCode;
+        }
+
+        [ApiExplorerSettings(IgnoreApi = true)]
+        public async Task<IActionResult> ClearCart(string userId)
+        {
+            IActionResult statusCode;
+
+            var cart = await _dbContext.Carts
+                .Include(c => c.ProductsCart)
+                .FirstOrDefaultAsync(c => c.CartId.ToString().Equals(userId));
+
+            if (cart == null)
+            {
+                statusCode = NotFound("Carrito no encontrado");
+            }
+            else
+            {
+                _dbContext.ProductsCart.RemoveRange(cart.ProductsCart);
+                await _dbContext.SaveChangesAsync();
+
+                statusCode = Ok("Carrito vaciado");
+            }
             return statusCode;
         }
     }
