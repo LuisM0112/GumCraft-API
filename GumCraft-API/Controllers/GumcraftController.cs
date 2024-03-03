@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace GumCraft_API.Controllers
 {
@@ -338,7 +340,12 @@ namespace GumCraft_API.Controllers
             return Ok("Carrito vaciado");
         }
 
-
+        [Authorize (Roles = "ADMIN")]
+        [HttpGet("imAdmin")]
+        public async Task<bool> imAdmin() 
+        { 
+            return true;
+        }
     }
 }
 
