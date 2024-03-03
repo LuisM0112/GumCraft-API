@@ -9,6 +9,10 @@ namespace GumCraft_API
     {
         public static async Task Main(string[] args)
         {
+
+            // Configuramos para que el directorio de trabajo sea donde está el ejecutable
+            Directory.SetCurrentDirectory(AppContext.BaseDirectory);
+
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
@@ -35,19 +39,7 @@ namespace GumCraft_API
                     };
 
                 });
-            // Permite CORS
-            if (builder.Environment.IsDevelopment())
-            {
-                builder.Services.AddCors(options =>
-                {
-                    options.AddDefaultPolicy(builder =>
-                    {
-                        builder.SetIsOriginAllowed(origin => new Uri(origin).Host == "localhost")
-                            .AllowAnyHeader()
-                            .AllowAnyMethod();
-                    });
-                });
-            }
+
 
             var app = builder.Build();
 
@@ -73,7 +65,12 @@ namespace GumCraft_API
                 app.UseSwagger();
                 app.UseSwaggerUI();
 
-                app.UseCors();
+                // Permite CORS
+                app.UseCors(config => config
+                    .AllowAnyMethod()
+                    .AllowAnyHeader()
+                    .SetIsOriginAllowed(origin => true)
+                    .AllowCredentials());
             }
 
             app.UseHttpsRedirection();
@@ -82,6 +79,9 @@ namespace GumCraft_API
             app.UseAuthorization();
 
             app.MapControllers();
+
+            // Habilitamos el uso de archivos estáticos
+            app.UseStaticFiles();
 
             app.Run();
         }
