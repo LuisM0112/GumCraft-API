@@ -8,6 +8,5 @@
         public string Image { get; set; }
         public int Stock { get; set; }
         public decimal EURprice { get; set; }
-        public decimal ETHprice { get; set; }
     }
 }

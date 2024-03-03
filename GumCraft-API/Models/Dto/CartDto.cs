@@ -1,5 +1,4 @@
-﻿using GumCraft_API.Database.Entities;
-using GumCraft_API.Models.Database.Entities;
+﻿using GumCraft_API.Models.Database.Entities;
 
 namespace GumCraft_API.Controllers
 {

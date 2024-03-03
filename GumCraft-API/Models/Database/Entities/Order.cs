@@ -1,6 +1,6 @@
-﻿using GumCraft_API.Models.Database.Entities;
+﻿using System.ComponentModel;
 
-namespace GumCraft_API.Database.Entities;
+namespace GumCraft_API.Models.Database.Entities;
 
 public class Order
 {
@@ -8,10 +8,12 @@ public class Order
 
     //Para la clave foránea, relacion 1 a 1, un pedido, un usuario
     public User User { get; set; }
+
+    [DefaultValue("PENDING")]
     public string Status { get; set; }
     public DateTime Date { get; set; }
-    public int EURprice { get; set; }
-    public int ETHtotal { get; set; }
+    public decimal EURprice { get; set; }
+    public decimal ETHtotal { get; set; }
 
 
     //Relación uno a muchos pedido-productoPedido

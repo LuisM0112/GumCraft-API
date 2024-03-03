@@ -1,5 +1,4 @@
 ﻿using GumCraft_API.Database;
-using GumCraft_API.Database.Entities;
 using GumCraft_API.Models.Classes;
 using GumCraft_API.Models.Database.Entities;
 using GumCraft_API.Models.Dto;
@@ -34,9 +33,9 @@ namespace GumCraft_API.Controllers
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> Post([FromForm] NewUser incomingNewUser)
         {
+            IActionResult statusCode;
             try
             {
-                ObjectResult statusCode;
                 if (incomingNewUser.UserName == null || incomingNewUser.Email == null || incomingNewUser.Password == null || incomingNewUser.PasswordBis == null || incomingNewUser.Address == null)
                 {
                     statusCode = BadRequest("Rellene los campos");
@@ -71,11 +70,9 @@ namespace GumCraft_API.Controllers
 
                     statusCode = Ok("Usuario registrado");
                 }
-                return statusCode;
             }
             catch (DbUpdateException ex)
             {
-                ObjectResult statusCode;
                 if (ex.InnerException == null)
                 {
                     statusCode = BadRequest(ex.Message);
@@ -89,9 +86,8 @@ namespace GumCraft_API.Controllers
                     }
                     else statusCode = BadRequest(sqliteException.Message);
                 }
-                return statusCode;
-
             }
+            return statusCode;
         }
 
         private UserDto ToDto(User user)
@@ -120,8 +116,7 @@ namespace GumCraft_API.Controllers
                 Description = product.Description,
                 Image = product.Image,
                 Stock = product.Stock,
-                EURprice = product.EURprice,
-                ETHprice = product.ETHprice
+                EURprice = product.EURprice
             };
         }
 
@@ -129,7 +124,7 @@ namespace GumCraft_API.Controllers
         [HttpGet("Product/{productId}")]
         public async Task<IActionResult> GetProducts(long productId)
         {
-            ObjectResult statusCode;
+            IActionResult statusCode;
             var product = await _dbContext.Products.FirstOrDefaultAsync(p => p.ProductId == productId);
 
             if (product == null)
@@ -143,7 +138,6 @@ namespace GumCraft_API.Controllers
 
             return statusCode;
         }
-
 
         [HttpGet("carts")]
         public IEnumerable<CartDto> GetCarts()
@@ -161,183 +155,204 @@ namespace GumCraft_API.Controllers
 
         [Authorize]
         [HttpGet("cart/products")]
-        public async Task<IActionResult> GetProductsInCart(long cartId)
+        public async Task<IActionResult> GetProductsInCart()
         {
-            string cartID = User.FindFirst("id").Value;
+            IActionResult statusCode;
+
+            string userId = User.FindFirst("id").Value;
             var cart = await _dbContext.Carts
                 .Include(c => c.ProductsCart)
                     .ThenInclude(pc => pc.Product)
-                .FirstOrDefaultAsync(c => c.CartId.ToString().Equals(cartID));
+                .FirstOrDefaultAsync(c => c.User.UserId.ToString().Equals(userId));
 
             if (cart == null)
             {
-                return NotFound("Carrito no encontrado");
+                statusCode = NotFound("Carrito no encontrado");
+            }
+            else
+            {
+                var productCartDto = cart.ProductsCart.Select(pc => new ProductCartDto
+                {
+                    ProductId = pc.Product.ProductId,
+                    Name = pc.Product.Name,
+                    Amount = pc.Amount,
+                    Price = pc.Product.EURprice * pc.Amount
+                }).ToList();
+
+                statusCode = Ok(productCartDto);
             }
 
-            var productCartDto = cart.ProductsCart.Select(pc => new ProductCartDto
-            {
-                ProductId = pc.Product.ProductId,
-                Name = pc.Product.Name,
-                Amount = pc.Amount,
-                Price = pc.Product.EURprice * pc.Amount
-            }).ToList();
-
-            return Ok(productCartDto);
+            return statusCode;
         }
 
-        [HttpGet("cart/{cartId}/total")]
-        public async Task<IActionResult> GetCartTotal(long cartId)
+        [HttpGet("cart/total")]
+        public async Task<IActionResult> GetCartTotal()
         {
+            IActionResult statusCode;
+            string userId = User.FindFirst("id").Value;
             var cart = await _dbContext.Carts
                 .Include(c => c.ProductsCart)
                     .ThenInclude(pc => pc.Product)
-                .FirstOrDefaultAsync(c => c.CartId == cartId);
+                .FirstOrDefaultAsync(c => c.User.UserId.ToString().Equals(userId));
 
             if (cart == null)
             {
-                return NotFound("Carrito no encontrado");
+                statusCode = NotFound("Carrito no encontrado");
             }
-
-            var total = cart.ProductsCart.Sum(pc => pc.Product.EURprice * pc.Amount);
-
-            return Ok(total);
+            else
+            {
+                var total = cart.ProductsCart.Sum(pc => pc.Product.EURprice * pc.Amount);
+                statusCode = Ok(total);
+            }
+            return statusCode;
         }
 
         [Authorize]
         [HttpPut("cart/product/{productId}")]
-        public async Task<IActionResult> AddProductToCart(long cartId, long productId)
+        public async Task<IActionResult> AddProductToCart(long productId)
         {
-            string cartID = User.FindFirst("id").Value;
-            var cart = await _dbContext.Carts
+            IActionResult statusCode;
+
+            string userId = User.FindFirst("id").Value;
+            var cart = _dbContext.Carts
                 .Include(c => c.ProductsCart)
                     .ThenInclude(pc => pc.Product)
-                .FirstOrDefaultAsync(c => c.CartId.ToString().Equals(cartID));
+                .FirstOrDefault(c => c.User.UserId.ToString().Equals(userId));
+
+            var product = _dbContext.Products.Find(productId);
 
             if (cart == null)
             {
-                return NotFound("Carrito no encontrado");
+                statusCode = NotFound("Carrito no encontrado");
             }
-
-            var product = await _dbContext.Products.FindAsync(productId);
-
-            if (product == null)
+            else if (product == null)
             {
-                return NotFound("Producto no encontrado");
-            }
-
-            var productCart = cart.ProductsCart.FirstOrDefault(pc => pc.Product.ProductId == productId);
-
-            if (productCart != null)
-            {
-                productCart.Amount++;
+                statusCode = NotFound("Producto no encontrado");
             }
             else
             {
+                var productCart = cart.ProductsCart.FirstOrDefault(pc => pc.Product.ProductId == productId);
 
-                productCart = new ProductCart
+                if (productCart != null)
                 {
-                    Cart = cart,
-                    Product = product,
-                    Amount = 1
-                };
+                    productCart.Amount++;
+                }
+                else
+                {
 
-                cart.ProductsCart.Add(productCart);
+                    productCart = new ProductCart
+                    {
+                        Cart = cart,
+                        Product = product,
+                        Amount = 1
+                    };
+
+                    cart.ProductsCart.Add(productCart);
+                }
+                _dbContext.SaveChanges();
+                statusCode = Ok("Producto añadido al carrito");
             }
 
-
-
-            await _dbContext.SaveChangesAsync();
-
-            return Ok("Producto añadido al carrito");
+            return statusCode;
         }
 
-
         [HttpPut("cart/productDel/{productId}")]
-        public async Task<IActionResult> DelProductToCart(long cartId, long productId)
+        public async Task<IActionResult> DelProductToCart(long productId)
         {
-            string cartID = User.FindFirst("id").Value;
+            IActionResult statusCode;
+
+            string userId = User.FindFirst("id").Value;
             var cart = await _dbContext.Carts
                 .Include(c => c.ProductsCart)
                     .ThenInclude(pc => pc.Product)
-                .FirstOrDefaultAsync(c => c.CartId.ToString().Equals(cartID));
-
-            if (cart == null)
-            {
-                return NotFound("Carrito no encontrado");
-            }
+                .FirstOrDefaultAsync(c => c.User.UserId.ToString().Equals(userId));
 
             var product = await _dbContext.Products.FindAsync(productId);
 
-            if (product == null)
+            if (cart == null)
             {
-                return NotFound("Producto no encontrado");
+                statusCode = NotFound("Carrito no encontrado");
             }
-
-            var productCart = cart.ProductsCart.FirstOrDefault(pc => pc.Product.ProductId == productId);
-            if (productCart == null)
+            else if (product == null)
             {
-                return BadRequest("El producto no está en el carrito");
-            }
-
-            if (productCart.Amount > 1)
-            {
-                productCart.Amount--;
+                statusCode = NotFound("Producto no encontrado");
             }
             else
             {
-                cart.ProductsCart.Remove(productCart);
+                var productCart = cart.ProductsCart.FirstOrDefault(pc => pc.Product.ProductId == productId);
+                if (productCart == null)
+                {
+                    statusCode = BadRequest("El producto no está en el carrito");
+                }
+                else
+                {
+                    if (productCart.Amount > 1)
+                    {
+                        productCart.Amount--;
+                    }
+                    else
+                    {
+                        cart.ProductsCart.Remove(productCart);
+                    }
+
+                    await _dbContext.SaveChangesAsync();
+
+                    statusCode = Ok("Producto eliminado correctamente");
+                }
             }
-
-            await _dbContext.SaveChangesAsync();
-
-            return Ok("Producto eliminado correctamente");
+            return statusCode;
         }
         
         [HttpGet("GetUserById")]
         [Authorize]
-        public ActionResult<string> GetUser()
+        public IActionResult GetUser()
         {
-            var userId = User.FindFirst("id").Value;
+            IActionResult statusCode;
 
-            Console.WriteLine($"Reclamación de ID encontrada en el token: {userId}");
+            var userId = User.FindFirst("id").Value;
 
             if (!long.TryParse(userId, out long longId))
             {
-                Console.WriteLine($"Formato de ID inválido: {userId}");
-                return BadRequest("Invalid ID format");
+                statusCode = BadRequest("Invalid ID format");
             }
-
-            Console.WriteLine($"ID de usuario parseado correctamente: {longId}");
-
-            var user = _dbContext.Users.FirstOrDefault(u => u.UserId == longId);
-            if (user == null)
+            else
             {
-                Console.WriteLine($"No se encontró ningún usuario con el ID: {longId}");
-                return NotFound();
+                var user = _dbContext.Users.FirstOrDefault(u => u.UserId == longId);
+                if (user == null)
+                {
+                    statusCode = NotFound();
+                }
+                else
+                {
+                    statusCode = Ok(ToDto(user));
+                }
             }
-
-            Console.WriteLine($"Usuario encontrado: {user.UserId}");
-            return user.Name;
+            return statusCode;
         }
 
         [Authorize]
         [HttpPost("cart/clear")]
         public async Task<IActionResult> ClearCart()
         {
-            string cartID = User.FindFirst("id").Value;
+            IActionResult statusCode;
+
+            string userId = User.FindFirst("id").Value;
             var cart = await _dbContext.Carts
                 .Include(c => c.ProductsCart)
-                .FirstOrDefaultAsync(c => c.CartId.ToString().Equals(cartID));
+                .FirstOrDefaultAsync(c => c.CartId.ToString().Equals(userId));
 
             if (cart == null)
             {
-                return NotFound("Carrito no encontrado");
+                statusCode = NotFound("Carrito no encontrado");
             }
+            else
+            {
+                _dbContext.ProductsCart.RemoveRange(cart.ProductsCart);
+                await _dbContext.SaveChangesAsync();
 
-            _dbContext.ProductsCart.RemoveRange(cart.ProductsCart);
-            await _dbContext.SaveChangesAsync();
-
-            return Ok("Carrito vaciado");
+                statusCode = Ok("Carrito vaciado");
+            }
+            return statusCode;
         }
 
         [Authorize (Roles = "ADMIN")]
@@ -348,4 +363,3 @@ namespace GumCraft_API.Controllers
         }
     }
 }
-

@@ -1,5 +1,4 @@
-﻿using GumCraft_API.Database.Entities;
-using GumCraft_API.Models.Database.Entities;
+﻿using GumCraft_API.Models.Database.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace GumCraft_API.Database;
@@ -13,6 +12,7 @@ public class MyDbContext: DbContext
     public DbSet<Product> Products { get; set; }
     public DbSet<ProductCart> ProductsCart { get; set; }
     public DbSet<ProductOrder> ProdcutsOrder { get; set; }
+    public DbSet<Transaction> Transactions { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder options)
     {

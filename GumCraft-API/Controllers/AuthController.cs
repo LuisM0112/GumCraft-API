@@ -28,8 +28,8 @@ namespace GumCraft_API.Controllers
         [HttpPost("Login")]
         public async Task<IActionResult> Login([FromForm] LoggedUser incomingLoggedUser)
         {
-            ObjectResult statusCode;
-            if (incomingLoggedUser.Email == null || incomingLoggedUser.Password == null)
+            IActionResult statusCode;
+            if (incomingLoggedUser.Email.IsNullOrEmpty() || incomingLoggedUser.Password.IsNullOrEmpty())
             {
                 statusCode = BadRequest("Rellene los campos");
             }
@@ -68,7 +68,7 @@ namespace GumCraft_API.Controllers
                     SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
                     string stringToken = tokenHandler.WriteToken(token);
 
-                    return Ok(stringToken);
+                    statusCode = Ok(stringToken);
                 }
             }
             return statusCode;
