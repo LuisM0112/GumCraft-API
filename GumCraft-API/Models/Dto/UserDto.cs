@@ -1,4 +1,6 @@
-﻿namespace GumCraft_API.Models.Dto
+﻿using Org.BouncyCastle.Utilities;
+
+namespace GumCraft_API.Models.Dto
 {
     public class UserDto
     {
@@ -6,5 +8,8 @@
         public string Email { get; set; }
         public string Password { get; set; }
         public string Address { get; set; }
+
+        public string Role { get; set; }
+        public long UserId { get; set; }
     }
 }

@@ -26,6 +26,7 @@ namespace GumCraft_API.Controllers
         [HttpGet("Users")]
         public IEnumerable<UserDto> GetUsers()
         {
+            var users = _dbContext.Users.ToList();
             return _dbContext.Users.Select(ToDto);
         }
 
@@ -97,6 +98,8 @@ namespace GumCraft_API.Controllers
                 UserName = user.Name,
                 Email = user.Email,
                 Address = user.Address,
+                Role = user.Role,
+                UserId = user.UserId
             };
         }
 
@@ -330,6 +333,26 @@ namespace GumCraft_API.Controllers
             return statusCode;
         }
 
+        [HttpDelete("deleteUser/{userId}")]
+        [Authorize(Roles = "ADMIN")]
+        public IActionResult DeleteUser(long userId)
+        {
+            IActionResult statusCode;
+
+            var user = _dbContext.Users.FirstOrDefault(u => u.UserId == userId);
+            if (user == null)
+            {
+                statusCode = NotFound();
+            }
+            else
+            {
+                _dbContext.Users.Remove(user);
+                _dbContext.SaveChanges();
+                statusCode = Ok("Usuario borrado con exito");
+            }
+            return statusCode;
+        }
+
         [Authorize]
         [HttpPost("cart/clear")]
         public async Task<IActionResult> ClearCart()
@@ -361,5 +384,35 @@ namespace GumCraft_API.Controllers
         { 
             return true;
         }
+
+        [HttpPut("changeRole/{userId}")]
+        [Authorize (Roles = "ADMIN")]
+        public IActionResult ChangeUserRole(long userId)
+        {
+            IActionResult statusCode;
+
+            var user = _dbContext.Users.FirstOrDefault(u => u.UserId == userId);
+            if (user == null)
+            {
+                statusCode = NotFound();
+            }
+            else
+            {
+                if (user.Role == "ADMIN")
+                {
+                    user.Role = "USER";
+                }
+                else if (user.Role == "USER")
+                {
+                    user.Role = "ADMIN";
+                }
+
+                _dbContext.SaveChanges();
+
+                statusCode = Ok("El rol del usuario ha sido cambiado a "+user.Role);
+            }
+            return statusCode;
+        }
+
     }
 }
