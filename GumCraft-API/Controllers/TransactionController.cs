@@ -2,12 +2,14 @@
 using GumCraft_API.Database;
 using GumCraft_API.Models.Classes;
 using GumCraft_API.Models.Database.Entities;
+using GumCraft_API.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Nethereum.Hex.HexTypes;
 using Nethereum.RPC.TransactionReceipts;
 using Nethereum.Web3;
 using System.Numerics;
+using System.Text;
 
 namespace GumCraft_API.Controllers
 {
@@ -70,6 +72,7 @@ namespace GumCraft_API.Controllers
                 transactionToSign.Id = transaction.TransactionId;
 
                 statusCode = Ok(transactionToSign);
+                
             }
 
             return statusCode;
@@ -111,6 +114,8 @@ namespace GumCraft_API.Controllers
                 {
                     await SaveCartOrder(userId);
                     await ClearCart(userId);
+
+                    
                 }
             }
             catch (Exception ex)
@@ -119,6 +124,8 @@ namespace GumCraft_API.Controllers
             }
 
             transaction.Completed = success;
+
+            
 
             return success;
         }
@@ -177,6 +184,17 @@ namespace GumCraft_API.Controllers
                     }).ToList();
 
                     await _dbContext.SaveChangesAsync();
+
+                    var email = new emailService();
+
+                    string to = user.Email;
+
+                    string subject = "¡Compra Confirmada!";
+                    
+
+                    string body = BuildEmailBody(currentOrder);
+
+                    await email.SendMessageAsync(to, subject, body, isHtml: false);
                 }
 
                 statusCode = Ok("Pedido registrado");
@@ -206,6 +224,31 @@ namespace GumCraft_API.Controllers
                 statusCode = Ok("Carrito vaciado");
             }
             return statusCode;
+        }
+        [ApiExplorerSettings(IgnoreApi = true)]
+        private string BuildEmailBody(Order order)
+        {
+            StringBuilder stringBuilder = new StringBuilder();
+
+            stringBuilder.AppendLine("Detalles del pedido:");
+            stringBuilder.AppendLine($"Número del pedido: {order.OrderId}");
+            stringBuilder.AppendLine($"Fecha del pedido: {order.Date}");
+
+            stringBuilder.AppendLine("\nProductos:");
+
+            foreach (var productOrder in order.ProductsOrders)
+            {
+                stringBuilder.AppendLine($"- Nombre del producto: {productOrder.Product.Name}");
+                stringBuilder.AppendLine($"  Cantidad: {productOrder.Amount}");
+                stringBuilder.AppendLine($"  Precio unitario: {productOrder.Product.EURprice}");
+                stringBuilder.AppendLine($"  Subtotal: {productOrder.Amount * productOrder.Product.EURprice}");
+                stringBuilder.AppendLine();
+            }
+
+            stringBuilder.AppendLine($"Total del pedido (eur): {order.EURprice}");
+            stringBuilder.AppendLine($"Total del pedido (eth): {order.ETHtotal}");
+
+            return stringBuilder.ToString();
         }
     }
 }
