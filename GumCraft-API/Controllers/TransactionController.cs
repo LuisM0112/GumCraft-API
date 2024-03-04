@@ -194,7 +194,7 @@ namespace GumCraft_API.Controllers
 
                     string body = BuildEmailBody(currentOrder);
 
-                    await email.SendMessageAsync(to, subject, body, isHtml: false);
+                    await email.SendMessageAsync(to, subject, body, isHtml: true);
                 }
 
                 statusCode = Ok("Pedido registrado");
@@ -230,23 +230,46 @@ namespace GumCraft_API.Controllers
         {
             StringBuilder stringBuilder = new StringBuilder();
 
-            stringBuilder.AppendLine("Detalles del pedido:");
-            stringBuilder.AppendLine($"Número del pedido: {order.OrderId}");
-            stringBuilder.AppendLine($"Fecha del pedido: {order.Date}");
+            stringBuilder.AppendLine("<!DOCTYPE html>");
+            stringBuilder.AppendLine("<html lang='es'>");
+            stringBuilder.AppendLine("<head>");
+            stringBuilder.AppendLine("<meta charset='UTF-8'>");
+            stringBuilder.AppendLine("<title>Detalles del Pedido</title>");
+            stringBuilder.AppendLine("<style>");
+            stringBuilder.AppendLine("table { border-collapse: collapse; }");
+            stringBuilder.AppendLine("td, th { padding: 2px; }");
+            stringBuilder.AppendLine("th { background-color: rgb(214, 145, 124); text-align: center; }");
+            stringBuilder.AppendLine("td { background-color: rgb(255, 239, 224); }");
+            stringBuilder.AppendLine("td.numbers { text-align: right; }");
+            stringBuilder.AppendLine("</style>");
+            stringBuilder.AppendLine("</head>");
+            stringBuilder.AppendLine("<body>");
 
-            stringBuilder.AppendLine("\nProductos:");
+            stringBuilder.AppendLine("<table border='1'>");
+            stringBuilder.AppendLine("<tr><th colspan='4'>Detalles del pedido:</th></tr>");
+            stringBuilder.AppendLine($"<tr><td>Número del pedido:</td><td class='numbers'>{order.OrderId}</td><td>Fecha del pedido:</td><td class='numbers'>{order.Date.ToString("dddd dd MMMM yyyy HH:mm zzz")}</td></tr>");
+            stringBuilder.AppendLine("<tr><th colspan='4'>Productos:</th></tr>");
+            stringBuilder.AppendLine("<tr><th>Nombre</th><th>Cantidad</th><th>Precio</th><th>Subtotal</th></tr>");
 
             foreach (var productOrder in order.ProductsOrders)
             {
-                stringBuilder.AppendLine($"- Nombre del producto: {productOrder.Product.Name}");
-                stringBuilder.AppendLine($"  Cantidad: {productOrder.Amount}");
-                stringBuilder.AppendLine($"  Precio unitario: {productOrder.Product.EURprice}");
-                stringBuilder.AppendLine($"  Subtotal: {productOrder.Amount * productOrder.Product.EURprice}");
-                stringBuilder.AppendLine();
+                stringBuilder.AppendLine("<tr>");
+                stringBuilder.AppendLine($"<td>{productOrder.Product.Name}</td>");
+                stringBuilder.AppendLine($"<td class='numbers'>{productOrder.Amount}u</td>");
+                stringBuilder.AppendLine($"<td class='numbers'>{productOrder.Product.EURprice}€</td>");
+                stringBuilder.AppendLine($"<td class='numbers'>{(productOrder.Amount * productOrder.Product.EURprice)}€</td>");
+                stringBuilder.AppendLine("</tr>");
             }
 
-            stringBuilder.AppendLine($"Total del pedido (eur): {order.EURprice}");
-            stringBuilder.AppendLine($"Total del pedido (eth): {order.ETHtotal}");
+            stringBuilder.AppendLine("<tr><th colspan='4'>Total:</th></tr>");
+
+            stringBuilder.AppendLine($"<tr><td colspan='3'>Total del pedido (eur):</td><td class='numbers'>{order.EURprice}€</td></tr>");
+            stringBuilder.AppendLine($"<tr><td colspan='3'>Total del pedido (eth):</td><td class='numbers'>{order.ETHtotal}Ξ</td></tr>");
+
+            stringBuilder.AppendLine("</table>");
+
+            stringBuilder.AppendLine("</body>");
+            stringBuilder.AppendLine("</html>");
 
             return stringBuilder.ToString();
         }
