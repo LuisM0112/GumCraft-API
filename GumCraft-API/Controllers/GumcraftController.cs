@@ -413,7 +413,7 @@ namespace GumCraft_API.Controllers
         public async Task<IActionResult> GetOrders()
         {
             IActionResult statusCode;
-            string userId = User.FindFirst("id").Value;
+            string userId = User?.FindFirst("id")?.Value;
             var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.UserId.ToString().Equals(userId));
             if (user == null)
             {
