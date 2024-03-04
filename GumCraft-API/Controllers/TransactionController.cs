@@ -237,7 +237,6 @@ namespace GumCraft_API.Controllers
             stringBuilder.AppendLine("<title>Detalles del Pedido</title>");
             stringBuilder.AppendLine("<style>");
             stringBuilder.AppendLine("table { border-collapse: collapse; }");
-            stringBuilder.AppendLine("td, th { padding: 2px; }");
             stringBuilder.AppendLine("th { background-color: rgb(214, 145, 124); text-align: center; }");
             stringBuilder.AppendLine("td { background-color: rgb(255, 239, 224); }");
             stringBuilder.AppendLine("td.numbers { text-align: right; }");
@@ -245,7 +244,7 @@ namespace GumCraft_API.Controllers
             stringBuilder.AppendLine("</head>");
             stringBuilder.AppendLine("<body>");
 
-            stringBuilder.AppendLine("<table border='1'>");
+            stringBuilder.AppendLine("<table border='1' cellpadding='10'>");
             stringBuilder.AppendLine("<tr><th colspan='4'>Detalles del pedido:</th></tr>");
             stringBuilder.AppendLine($"<tr><td>Número del pedido:</td><td class='numbers'>{order.OrderId}</td><td>Fecha del pedido:</td><td class='numbers'>{order.Date.ToString("dddd dd MMMM yyyy HH:mm zzz")}</td></tr>");
             stringBuilder.AppendLine("<tr><th colspan='4'>Productos:</th></tr>");
