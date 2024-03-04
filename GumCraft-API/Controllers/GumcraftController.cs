@@ -414,5 +414,39 @@ namespace GumCraft_API.Controllers
             return statusCode;
         }
 
+        //Devuelve Order
+        [HttpGet("Orders")]
+        public async Task<IActionResult> GetOrders()
+        {
+            IActionResult statusCode;
+            string userId = User.FindFirst("id").Value;
+            var orders = await _dbContext.Orders
+                .Include(o => o.ProductsOrders)
+                    .ThenInclude(po => po.Product)
+                .Where(o => o.User.UserId.ToString().Equals(userId))
+                .ToListAsync();
+            if (orders == null || !orders.Any())
+            {
+                statusCode = NotFound("Pedidos no encontrados");
+            }
+            else
+            {
+                var orderDTOs = orders.Select(ToDto).ToList();
+                statusCode = Ok(orderDTOs);
+            }
+            return statusCode;
+        }
+
+        private OrderDto ToDto(Order order)
+        {
+            return new OrderDto
+            {
+                OrderId = order.OrderId,
+                Status = order.Status,
+                Date = order.Date,
+                EURprice = order.EURprice,
+                ETHtotal = order.ETHtotal
+            };
+        }
     }
 }
