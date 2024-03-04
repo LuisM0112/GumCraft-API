@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using System.ComponentModel;
 using static System.Net.Mime.MediaTypeNames;
 
@@ -314,21 +315,14 @@ namespace GumCraft_API.Controllers
 
             var userId = User.FindFirst("id").Value;
 
-            if (!long.TryParse(userId, out long longId))
+            var user = _dbContext.Users.FirstOrDefault(u => u.UserId.ToString().Equals(userId));
+            if (user == null)
             {
-                statusCode = BadRequest("Invalid ID format");
+                statusCode = NotFound("Usuario no encontrado");
             }
             else
             {
-                var user = _dbContext.Users.FirstOrDefault(u => u.UserId == longId);
-                if (user == null)
-                {
-                    statusCode = NotFound();
-                }
-                else
-                {
-                    statusCode = Ok(ToDto(user));
-                }
+                statusCode = Ok(ToDto(user));
             }
             return statusCode;
         }
@@ -420,19 +414,27 @@ namespace GumCraft_API.Controllers
         {
             IActionResult statusCode;
             string userId = User.FindFirst("id").Value;
-            var orders = await _dbContext.Orders
+            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.UserId.ToString().Equals(userId));
+            if (user == null)
+            {
+                statusCode = NotFound("Usuario no encontrado");
+            }
+            else
+            {
+                var orders = await _dbContext.Orders
                 .Include(o => o.ProductsOrders)
                     .ThenInclude(po => po.Product)
                 .Where(o => o.User.UserId.ToString().Equals(userId))
                 .ToListAsync();
-            if (orders == null || !orders.Any())
-            {
-                statusCode = NotFound("Pedidos no encontrados");
-            }
-            else
-            {
-                var orderDTOs = orders.Select(ToDto).ToList();
-                statusCode = Ok(orderDTOs);
+                if (orders == null || !orders.Any())
+                {
+                    statusCode = NotFound("No hay pedidos");
+                }
+                else
+                {
+                    var orderDTOs = orders.Select(ToDto).ToList();
+                    statusCode = Ok(orderDTOs);
+                }
             }
             return statusCode;
         }
@@ -443,7 +445,7 @@ namespace GumCraft_API.Controllers
             {
                 OrderId = order.OrderId,
                 Status = order.Status,
-                Date = order.Date,
+                Date = order.Date.ToString("dddd dd MMMM yyyy HH:mm zzz"),
                 EURprice = order.EURprice,
                 ETHtotal = order.ETHtotal
             };
