@@ -92,6 +92,72 @@ namespace GumCraft_API.Controllers
             return statusCode;
         }
 
+        [HttpPut("User")]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> Put([FromForm] NewUser incomingNewUser)
+        {
+            IActionResult statusCode;
+            try
+            {
+                string userId = User?.FindFirst("id")?.Value;
+                var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.UserId.ToString().Equals(userId));
+
+                string finalUsername = "";
+                string finalEmail = "";
+                string finalAddress = "";
+                if (user == null)
+                {
+                    statusCode = NotFound("Usuario no encontrado");
+                }
+                else
+                {
+                    if (incomingNewUser.UserName == null)
+                    {
+                        finalUsername = user.Name;
+                    }
+                    else
+                    {
+                        finalUsername = incomingNewUser.UserName;
+                    }
+                    if (incomingNewUser.Email == null)
+                    {
+                        finalEmail = user.Email;
+                    }
+                    else
+                    {
+                        finalEmail = incomingNewUser.Email;
+                    }
+                    if (incomingNewUser.Address == null)
+                    {
+                        finalAddress = user.Address;
+                    }
+                    else
+                    {
+                        finalAddress = incomingNewUser.Address;
+                    }
+                    User modifiedUser = new User()
+                    {
+                        UserId = user.UserId,
+                        Name = finalUsername,
+                        Email = finalEmail,
+                        Password = user.Password,
+                        Address = finalAddress,
+                        Role = user.Role,
+                    };
+
+                    await _dbContext.Users.AddAsync(modifiedUser);
+                    await _dbContext.SaveChangesAsync();
+
+                    statusCode = Ok("Usuario registrado");
+
+                }
+            } catch (Exception ex)
+            {
+                statusCode = BadRequest(ex.Message);
+            }
+            return statusCode;
+        }
+
         private UserDto ToDto(User user)
         {
             return new UserDto
