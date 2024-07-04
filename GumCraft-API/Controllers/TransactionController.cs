@@ -17,7 +17,7 @@ namespace GumCraft_API.Controllers
     [ApiController]
     public class TransactionController : ControllerBase
     {
-        private const string OUR_WALLET = "0xBFC126F6d19cbbE6AE54B62DcC54e5F98dA3ee76";
+        private const string OUR_WALLET = "Wallet";
         private const string NETWORK_URL = "https://rpc.sepolia.org";
 
         private readonly MyDbContext _dbContext;

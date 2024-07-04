@@ -7,7 +7,7 @@ internal class emailService
 {
     private const string SMTP_HOST = "smtp.gmail.com";
     private const int SMTP_PORT = 587;
-    private const string EMAIL_FROM = "angelinerocano48@gmail.com";
+    private const string EMAIL_FROM = "Email";
     // Se obtiene de este video https://www.youtube.com/watch?v=Yv_Wh0zjMw4
     private const string PASSWORD_EMAIL_FROM = "zvku otgr uphy mwxm";
 
